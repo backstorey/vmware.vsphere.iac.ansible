@@ -1,0 +1,58 @@
+name: vsphere-iac_my_cluster_workflow
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */4 * * *'    # Run Every 4hrs (set according to your needs)
+
+####  ADD DATACENTER OBJECT + CLUSTER NAME HERE ###
+
+env:
+  DATACENTER: MYDC
+  CLUSTER: mydc-cluster1
+
+###################################################
+
+jobs:
+  linting:
+    name: Lint Ansible Files
+    runs-on: [ self-hosted,linux,lab5 ]
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Perform linting
+        uses: ansible/ansible-lint-action@main
+        with:
+          targets: |
+            main.yml
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vsphere-iac
+          path: / 
+
+  run_playbook:
+    name: Run Playbook
+    needs: [linting]
+    runs-on: [ self-hosted,linux,lab5 ]
+    strategy:
+      fail-fast: true
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: vsphere-iac
+          path: vsphere-iac-linted
+  
+      - name: execute playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: main.yml
+          directory: vsphere-iac-linted
+          requirements: galaxy_requirements.yml
+          options: |
+            --extra-vars "vcenter_username=${{ secrets.VCENTER_USERNAME }} vcenter_password=${{ secrets.VCENTER_PASSWORD }} var_datacenter_name=${{ env.DATACENTER }} var_cluster_name=${{ env.CLUSTER }}"

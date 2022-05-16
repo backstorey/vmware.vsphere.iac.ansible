@@ -1,0 +1,10 @@
+---
+
+- name: Set Host config
+  include_tasks: 1_set_host_config.yml
+
+- name: Set DRS config
+  include_tasks: 2_set_drs_config.yml
+
+- name: Set HA config
+  include_tasks: 3_set_ha_config.yml

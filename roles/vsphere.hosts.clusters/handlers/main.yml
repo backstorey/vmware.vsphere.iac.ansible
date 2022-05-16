@@ -1,0 +1,13 @@
+---
+# handlers file for vsphere-hosts-clusters
+- name: restart_ntp
+  community.vmware.vmware_host_service_manager:
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    esxi_hostname: "{{ esxi_hostname }}"
+    service_name: ntpd
+    service_policy: "on"
+    state: "restart"
+  loop: "{{ ntp_restarts_required.host_ntp_status.keys() }}"
+  when: ntp_restarts_required.changed == true

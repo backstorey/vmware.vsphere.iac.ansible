@@ -1,0 +1,15 @@
+---
+# Defaults for MYDC - entire datacenter scope
+# These settings override the global level, but can be overridden at the cluster level.
+vcenter_server_fqdn: vcenter.domain.com
+host_settings:
+  ntp:
+    startup_policy: "with_host"
+    ntp_servers:
+      - 192.168.1.21
+      - 192.168.1.22
+  advanced_settings:
+    'NFS.MaxVolumes': 256
+    'Net.TcpipHeapSize': 32
+    'Net.TcpipHeapMax': 1536
+    'Syslog.global.logHost': "udp://mysyslog.server.com:514"

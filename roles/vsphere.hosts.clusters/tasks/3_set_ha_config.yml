@@ -1,0 +1,125 @@
+---
+# Module docs reference:
+# https://docs.ansible.com/ansible/latest/collections/community/vmware/vmware_cluster_ha_module.html
+
+## RESERVATION BASED ADMISSION CONTROL
+
+- name: Configure HA - Reservation based Admission Control - {{ cluster_name }}
+  community.vmware.vmware_cluster_ha:
+
+    # Logon Creds
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+
+    # Target Objects
+    datacenter_name: "{{ var_datacenter_name }}"
+    cluster_name: "{{ var_cluster_name }}"
+
+    # Master Toggle
+    enable: "{{ cluster_settings.ha.enabled }}"
+
+    # VM Monitoring
+    ha_vm_monitoring: "{{ cluster_settings.ha.vm_monitoring.vm_monitoring_mode }}"
+    ha_vm_failure_interval: "{{ cluster_settings.ha.vm_monitoring.ha_vm_failure_interval if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 120 }}"
+    ha_vm_max_failure_window: "{{ cluster_settings.ha.vm_monitoring.ha_vm_max_failure_window if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 168 }}"
+    ha_vm_max_failures: "{{ cluster_settings.ha.vm_monitoring.ha_vm_max_failures if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 3 }}"
+    ha_vm_min_up_time: "{{ cluster_settings.ha.vm_monitoring.ha_vm_min_up_time if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 480 }}"
+
+    # Failure Responses
+    ha_host_monitoring: "{{ cluster_settings.ha.failures_and_responses.host_monitoring }}"
+    ha_restart_priority: "{{ cluster_settings.ha.failures_and_responses.default_vm_restart_priority }}"
+    host_isolation_response: "{{ cluster_settings.ha.failures_and_responses.host_isolation_response }}"
+    pdl_response: "{{ cluster_settings.ha.failures_and_responses.datastore_with_pdl }}"
+    apd_response: "{{ cluster_settings.ha.failures_and_responses.datastore_with_adp }}"
+
+    # Admission Control Settings
+    reservation_based_admission_control:
+      auto_compute_percentages: "{{ True if cluster_settings.ha.admission_control.override_percentages == false else False }}"
+      failover_level: "{{ cluster_settings.ha.admission_control.host_failures_cluster_tolerates }}"
+      cpu_failover_resources_percent: "{{ cluster_settings.ha.admission_control.cpu_failover_resources_percent if cluster_settings.ha.admission_control.cpu_failover_resources_percent != 'N/A' else 50}}"
+      memory_failover_resources_percent: "{{ cluster_settings.ha.admission_control.memory_failover_resources_percent if cluster_settings.ha.admission_control.memory_failover_resources_percent != 'N/A' else 50 }}"
+  
+  # Run only when: 
+  # - HA is enabled
+  # - admission control mode is set to reservation based
+  when: (cluster_settings.ha.admission_control.enabled == true) and (cluster_settings.ha.admission_control.mode == "reservation_based")
+
+## SLOT BASED ADMISSION CONTROL
+
+- name: Configure HA - Slot Based Admission Control - {{ cluster_name }}
+  community.vmware.vmware_cluster_ha:
+
+    # Logon Creds
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+
+    # Target Objects
+    datacenter_name: "{{ var_datacenter_name }}"
+    cluster_name: "{{ var_cluster_name }}"
+
+    # Master Toggle
+    enable: "{{ cluster_settings.ha.enabled }}"
+
+    # VM Monitoring
+    ha_vm_monitoring: "{{ cluster_settings.ha.vm_monitoring.vm_monitoring_mode }}"
+    ha_vm_failure_interval: "{{ cluster_settings.ha.vm_monitoring.ha_vm_failure_interval if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 120 }}"
+    ha_vm_max_failure_window: "{{ cluster_settings.ha.vm_monitoring.ha_vm_max_failure_window if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 168 }}"
+    ha_vm_max_failures: "{{ cluster_settings.ha.vm_monitoring.ha_vm_max_failures if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 3 }}"
+    ha_vm_min_up_time: "{{ cluster_settings.ha.vm_monitoring.ha_vm_min_up_time if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 480 }}"
+
+    # Failure Responses
+    ha_host_monitoring: "{{ cluster_settings.ha.failures_and_responses.host_monitoring }}"
+    ha_restart_priority: "{{ cluster_settings.ha.failures_and_responses.default_vm_restart_priority }}"
+    host_isolation_response: "{{ cluster_settings.ha.failures_and_responses.host_isolation_response }}"
+    pdl_response: "{{ cluster_settings.ha.failures_and_responses.datastore_with_pdl }}"
+    apd_response: "{{ cluster_settings.ha.failures_and_responses.datastore_with_adp }}"
+
+    slot_based_admission_control:
+      failover_level: "{{ cluster_settings.ha.admission_control.host_failures_cluster_tolerates }}"
+
+  # Run only when: 
+  # - HA is enabled
+  # - admission control mode is set to slot based
+  when: (cluster_settings.ha.admission_control.enabled == true) and (cluster_settings.ha.admission_control.mode == "slot_based")
+
+### FAILOVER HOST ADMISSION CONTROL
+
+- name: Configure HA - Failover Host Admission Control - {{ cluster_name }}
+  community.vmware.vmware_cluster_ha:
+
+    # Logon Creds
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+
+    # Target Objects
+    datacenter_name: "{{ var_datacenter_name }}"
+    cluster_name: "{{ var_cluster_name }}"
+
+    # Master Toggle
+    enable: "{{ cluster_settings.ha.enabled }}"
+
+    # VM Monitoring
+    ha_vm_monitoring: "{{ cluster_settings.ha.vm_monitoring.vm_monitoring_mode }}"
+    ha_vm_failure_interval: "{{ cluster_settings.ha.vm_monitoring.ha_vm_failure_interval if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 120 }}"
+    ha_vm_max_failure_window: "{{ cluster_settings.ha.vm_monitoring.ha_vm_max_failure_window if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 168 }}"
+    ha_vm_max_failures: "{{ cluster_settings.ha.vm_monitoring.ha_vm_max_failures if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 3 }}"
+    ha_vm_min_up_time: "{{ cluster_settings.ha.vm_monitoring.ha_vm_min_up_time if cluster_settings.ha.vm_monitoring.vm_monitoring_mode != 'vmMonitoringDisabled' else 480 }}"
+
+    # Failure Responses
+    ha_host_monitoring: "{{ cluster_settings.ha.failures_and_responses.host_monitoring }}"
+    ha_restart_priority: "{{ cluster_settings.ha.failures_and_responses.default_vm_restart_priority }}"
+    host_isolation_response: "{{ cluster_settings.ha.failures_and_responses.host_isolation_response }}"
+    pdl_response: "{{ cluster_settings.ha.failures_and_responses.datastore_with_pdl }}"
+    apd_response: "{{ cluster_settings.ha.failures_and_responses.datastore_with_adp }}"
+
+    failover_host_admission_control:
+      failover_hosts: "{{ cluster_settings.ha.admission_control.failover_host_list }}"
+
+  # Run only when: 
+  # - HA is enabled
+  # - admission control mode is set to failover_host
+  when: (cluster_settings.ha.admission_control.enabled == true) and (cluster_settings.ha.admission_control.mode == "failover_host")
+

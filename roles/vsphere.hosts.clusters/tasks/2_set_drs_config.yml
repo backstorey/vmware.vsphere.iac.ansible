@@ -1,0 +1,42 @@
+---
+# Module docs reference:
+# https://docs.ansible.com/ansible/latest/collections/community/vmware/vmware_cluster_drs_module.html
+
+- name: Master DRS service Config - {{ var_cluster_name }}
+  community.vmware.vmware_cluster_drs:
+    
+    # Logon Creds
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    
+    # Target Objects
+    cluster_name: "{{ var_cluster_name }}"
+    datacenter_name: "{{ var_datacenter_name }}"
+    
+    # Master Toggle
+    enable: "{{ cluster_settings.drs.enabled }}"
+
+    # Core DRS Service Settings
+    drs_default_vm_behavior: "{{ cluster_settings.drs.automation_level }}"
+    drs_vmotion_rate: "{{ cluster_settings.drs.migration_threshold }}"
+
+- name: Create DRS VM-Host Rules - {{ var_cluster_name}}
+  community.vmware.vmware_vm_vm_drs_rule:
+
+    # Logon Creds
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+
+    # Target Objects
+    cluster_name: "{{ var_cluster_name }}"
+    drs_rule_name: "{{ item.name }}"
+
+    # Rule Definition
+    vms: "{{ item.members }}"
+    enabled: "{{ item.rule_enabled }}"
+    mandatory: False
+    affinity_rule: "{{ item.affinity }}"
+
+  loop: "{{ cluster_settings.drs.rules }}"

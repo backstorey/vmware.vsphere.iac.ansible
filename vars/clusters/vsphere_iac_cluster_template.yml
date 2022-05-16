@@ -1,0 +1,90 @@
+---
+vcenter_server_fqdn: vcenter.domain.com
+cluster_name: mycluster-name
+
+#### Host Config Section
+
+host_members:
+  - name: esxi1.domain.com
+  - name: esxi2.domain.com
+  - name: esxi3.domain.com
+  - name: esxi4.domain.com
+
+# Cluster Level Host Config Overrides:
+# Remove these or leave commented out when using inherited settings from datacenter or global level.
+
+host_settings:
+  ntp:
+    startup_policy: "with_host"
+    ntp_servers:
+      - 192.168.10.10
+      - 192.168.10.20
+  advanced_settings:
+    'NFS.MaxVolumes': 256
+    'Net.TcpipHeapSize': 32
+    'Net.TcpipHeapMax': 1536
+    'Syslog.global.logHost': "udp://mysyslog-cluster-level.server.com:514"
+
+#### Cluster Config Section
+cluster_settings:
+
+## DRS Config
+  drs:
+    enabled: true
+    automation_level: fullyAutomated                    # Set this to either manual, fullyAutomated, or partiallyAutomated
+    rules:
+      - name: my_anti_affinity_rule1
+        members:
+          - vm1
+          - vm2
+        affinity: false
+        rule_enabled: true
+      - name: my_anti_affinity_rule2
+        members:
+          - vm3
+          - vm4
+        affinity: false
+        rule_enabled: true
+
+## HA Config 
+  ha:
+    enabled: true
+    failures_and_responses:
+      host_monitoring: enabled
+      default_vm_restart_priority: medium               # set to either disabled, low, medium or high
+      host_isolation_response: shutdown                 # set to either none, powerOff or shutdown
+      datastore_with_pdl: restartAggressive             # set to either disabled, warning, or restartAggressive
+      datastore_with_adp: restartConservative           # set to either disabled, warning, restartConservative or restartAggressive
+    vm_monitoring:
+      vm_monitoring_mode: vmMonitoringOnly              # Set to either vmMonitoringDisabled, vmMonitoringOnly, vmAndAppMonitoring
+      ha_vm_failure_interval: 120
+      ha_vm_min_up_time: 480
+      ha_vm_max_failures: 3
+      ha_vm_max_failure_window: 168
+
+
+###  Admission Control Options ###
+
+    admission_control:
+      enabled: true
+      mode: reservation_based                           # set to either reservation_based, slot_based, failover_host 
+
+## Admission Control Mode Choices - Delete / Comment Out As Applicable
+
+      ##### reservation_based options
+      host_failures_cluster_tolerates: 1
+      override_percentages: false
+      cpu_failover_resources_percent: N/A
+      memory_failover_resources_percent: N/A
+      
+      ##### slot_based options
+      # host_failures_cluster_tolerates: 1
+      
+      ##### failover_host options
+      # failover_host:
+      #   failover_host_list:
+      #     - host1
+      #     - host2
+
+    heartbeat_datastores:                               # List of datastores will go here.  However not currently available to configure with ansible.
+    advanced_options:                                   # Dictionary expected here

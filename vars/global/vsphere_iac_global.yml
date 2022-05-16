@@ -1,0 +1,14 @@
+---
+# Global defaults for vSphere IaC
+# These can be overridden at either the datacenter or cluster level.
+host_settings:
+  ntp:
+    startup_policy: "with_host"
+    ntp_servers:
+      - 192.168.1.21
+      - 192.168.1.22
+  advanced_settings:
+    'NFS.MaxVolumes': 256
+    'Net.TcpipHeapSize': 32
+    'Net.TcpipHeapMax': 1536
+    'Syslog.global.logHost': "udp://mysyslog.server.com:514"

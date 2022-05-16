@@ -1,0 +1,38 @@
+---
+## Set ESXi Host Configs.  NTP + Advanced Settings
+
+- name: Set Facts
+  set_fact:
+    hosts_in_cluster: "{{ host_members }}"
+
+- name: Set startup config for NTP service on host - {{ item.name }}
+  community.vmware.vmware_host_service_manager:
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    esxi_hostname: "{{ item.name }}"
+    service_name: ntpd
+    service_policy: "{{ 'on' if host_settings.ntp.startup_policy == 'with_host' else 'automatic' if host_settings.ntp.startup_policy == 'with_fw_ports' else 'off' }}"
+  loop: "{{ hosts_in_cluster }}"
+
+- name: Set NTP servers on host in cluster - {{ item.name }}
+  community.vmware.vmware_host_ntp:
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    esxi_hostname: "{{ item.name }}"
+    ntp_servers: "{{ host_settings.ntp.ntp_servers }}"
+  loop: "{{ hosts_in_cluster }}"
+  notify:
+    - restart_ntp
+  register: ntp_restarts_required
+
+- name: Set Advanced ESXi Options on host - {{ item.name }}
+  community.vmware.vmware_host_config_manager:
+    hostname: "{{ vcenter_server_fqdn }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    esxi_hostname: "{{ item.name }}"
+    options: "{{ host_settings.advanced_settings }}"
+  loop: "{{ hosts_in_cluster }}"
+  when: host_settings.advanced_settings != None

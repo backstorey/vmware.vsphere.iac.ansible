@@ -1,0 +1,43 @@
+---
+- name: Set vSphere Config
+  hosts: localhost
+  connection: local
+  vars:
+    var_datacenter_name: MY_DATACENTER
+    var_cluster_name: MY_CLUSTER
+
+  tasks:
+    - name: check if datacenter var file exists
+      stat:
+        path: "./vars/global/vsphere_iac_global.yml"
+      register: global_vars
+
+    - name: import datacenter vars if they exist
+      include_vars: 
+        file: "./vars/global/vsphere_iac_global.yml"
+      when: global_vars.stat.exists
+
+    - name: check if datacenter var file exists
+      stat:
+        path: "./vars/datacenters/vsphere_iac_{{ var_datacenter_name }}.yml"
+      register: datacenter_vars
+
+    - name: import datacenter vars if they exist
+      include_vars: 
+        file: "./vars/datacenters/vsphere_iac_{{ var_datacenter_name }}.yml"
+      when: datacenter_vars.stat.exists
+
+    - name: check if cluster var file exists
+      stat:
+        path: "./vars/clusters/vsphere_iac_{{ var_cluster_name }}.yml"
+      register: cluster_vars
+
+    - name: import cluster vars
+      include_vars: 
+        file: "./vars/clusters/vsphere_iac_{{ var_cluster_name }}.yml"
+      when: cluster_vars.stat.exists
+
+    - name: Execute desired state vsphere config against datacenter
+      include_role:
+        name: vsphere.hosts.clusters
+      when: cluster_vars.stat.exists
